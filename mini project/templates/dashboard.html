@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Management - Snap&Report{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Dashboard Management</h1>
+        <p>Manage your dashboard widgets and customize your experience.</p>
+        <div class="dashboard-actions">
+            <a href="{% url 'home' %}" class="btn">← Back to Dashboard</a>
+            <a href="{% url 'profile' %}" class="btn">View Profile</a>
+            <a href="{% url 'logout' %}" class="btn secondary">Logout</a>
+        </div>
+    </div>
+
+    <div class="management-section">
+        <div class="section-header">
+            <h2>Manage Widgets</h2>
+            <p>Create, edit, and organize your dashboard widgets.</p>
+        </div>
+        <div class="management-grid">
+            <!-- Add New Widget Form -->
+            <div class="widget-form-section">
+                <h3>Add New Widget</h3>
+                <form method="POST" class="widget-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="add_widget" value="1">
+
+                    <div class="form-group">
+                        <label for="title">Widget Title:</label>
+                        <input type="text" id="title" name="title" required
+                               placeholder="e.g., Sales Statistics, User Activity">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="widget_type">Widget Type:</label>
+                        <select id="widget_type" name="widget_type" required>
+                            <option value="">Select a type...</option>
+                            <option value="stat">Statistic</option>
+                            <option value="chart">Chart</option>
+                            <option value="table">Data Table</option>
+                            <option value="news">News/Updates</option>
+                            <option value="activity">Activity Feed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea id="description" name="description" rows="3"
+                                  placeholder="Optional description for this widget"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data">Widget Data (JSON):</label>
+                        <textarea id="data" name="data" rows="4"
+                                  placeholder='{"value": "123", "chart_type": "bar", "rows": 10}'></textarea>
+                        <small>Enter widget-specific data in JSON format</small>
+                    </div>
+
+                    <button type="submit" class="btn">Add Widget</button>
+                </form>
+            </div>
+
+            <!-- Existing Widgets -->
+            <div class="widgets-management">
+                <h3>Existing Widgets</h3>
+
+                {% if widgets %}
+                    <div class="widgets-list">
+                        {% for widget in widgets %}
+                        <div class="widget-management-item">
+                            <div class="widget-info">
+                                <h4>{{ widget.title }}</h4>
+                                <span class="widget-type">{{ widget.get_widget_type_display }}</span>
+                                {% if widget.description %}
+                                    <p class="widget-desc">{{ widget.description }}</p>
+                                {% endif %}
+                                <small>Created: {{ widget.created_at|date:"M d, Y H:i" }}</small>
+                            </div>
+
+                            <div class="widget-actions">
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="widget_id" value="{{ widget.id }}">
+                                    <input type="hidden" name="toggle_widget" value="1">
+                                    <button type="submit" class="btn small {% if widget.is_active %}secondary{% else %}primary{% endif %}">
+                                        {% if widget.is_active %}Deactivate{% else %}Activate{% endif %}
+                                    </button>
+                                </form>
+
+                                <button class="btn small edit-widget" data-widget-id="{{ widget.id }}">
+                                    Edit
+                                </button>
+
+                                <button class="btn small danger delete-widget" data-widget-id="{{ widget.id }}">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-widgets">
+                        <p>No widgets created yet. Create your first widget above!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-section">
+        <h3>Quick Stats</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total Widgets</h4>
+                <div class="stat-value">{{ widgets|length }}</div>
+            </div>
+            <div class="stat-card">
+                <h4>Active Widgets</h4>
+                <div class="stat-value">{{ widgets|length }}</div>
+            </div>
+            <div class="stat-card">
+                <h4>Widget Types</h4>
+                <div class="stat-value">
+                    {% regroup widgets by widget_type as widget_types %}
+                    {{ widget_types|length }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for edit buttons
+    document.querySelectorAll('.edit-widget').forEach(button => {
+        button.addEventListener('click', function() {
+            const widgetId = this.getAttribute('data-widget-id');
+            // Implementation for editing a widget
+            console.log('Edit widget:', widgetId);
+            // You can add your edit logic here or call your existing function
+            // editWidget(widgetId);
+        });
+    });
+
+    // Add event listeners for delete buttons
+    document.querySelectorAll('.delete-widget').forEach(button => {
+        button.addEventListener('click', function() {
+            const widgetId = this.getAttribute('data-widget-id');
+            if (confirm('Are you sure you want to delete this widget?')) {
+                // Implementation for deleting a widget
+                console.log('Delete widget:', widgetId);
+                // You can add your delete logic here or call your existing function
+                // deleteWidget(widgetId);
+            }
+        });
+    });
+
+    // If you still need the global functions for other parts of your code
+    window.editWidget = function(widgetId) {
+        console.log('Edit widget (global):', widgetId);
+        // Your edit implementation
+    };
+
+    window.deleteWidget = function(widgetId) {
+        if (confirm('Are you sure you want to delete this widget?')) {
+            console.log('Delete widget (global):', widgetId);
+            // Your delete implementation
+        }
+    };
+});
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %} {% block content %}
+<div class="row">
+  <div class="col-12">
+    <h1 class="page-title mb-1">
+      <i class="fas fa-tachometer-alt me-3"></i>Admin Dashboard
+    </h1>
+    {% if admin_category %}
+    <p class="text-muted mb-4">
+      <span class="badge bg-secondary"><i class="fas fa-filter me-2"></i>Category: {{ admin_category|title }}</span>
+    </p>
+    {% endif %}
+  </div>
+</div>
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'logout' %}" class="btn btn-danger">
+    <i class="fas fa-sign-out-alt me-2"></i>Logout
+  </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-number">{{ total_issues }}</div>
+      <div class="stat-label">Total Issues</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div
+      class="stat-card"
+      style="background: linear-gradient(135deg, #10b981, #059669)"
+    >
+      <div class="stat-number">{{ resolved_issues }}</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div
+      class="stat-card"
+      style="background: linear-gradient(135deg, #f59e0b, #d97706)"
+    >
+      <div class="stat-number">{{ pending_issues }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div
+      class="stat-card"
+      style="background: linear-gradient(135deg, #06b6d4, #0891b2)"
+    >
+      <div class="stat-number">{{ users_count }}</div>
+      <div class="stat-label">Active Users</div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-3">
+          <a href="{% url 'issues_list' %}" class="btn btn-primary">
+            <i class="fas fa-tasks me-2"></i>View All Issues
+          </a>
+          {% comment %}
+          <a href="{% url 'analytics_dashboard' %}" class="btn btn-info">
+            <i class="fas fa-chart-bar me-2"></i>View Analytics
+          </a>
+          {% endcomment %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-chart-line me-2"></i>System Overview</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <span>Database Status</span>
+            <span class="badge bg-success"
+              ><i class="fas fa-check me-1"></i>Active</span
+            >
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <span>User Management</span>
+            <span class="badge bg-info"
+              ><i class="fas fa-users me-1"></i>{{ users_count }} Users</span
+            >
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <span>Issue Tracking</span>
+            <span class="badge bg-warning"
+              ><i class="fas fa-clipboard-list me-1"></i>{{ total_issues }}
+              Issues</span
+            >
+          </div>
+        </div>
+        <div class="mt-4">
+          <p class="text-muted mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            Welcome to your admin dashboard. Use the quick actions to navigate
+            to different sections.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity Section -->
+{% comment %}
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-history me-2"></i>Recent Activity</h5>
+      </div>
+      <div class="card-body text-center py-5">
+        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Activity Dashboard Coming Soon</h5>
+        <p class="text-muted">
+          Real-time activity tracking will be displayed here once issues are
+          processed through the system.
+        </p>
+        <a href="{% url 'report_issue' %}" class="btn btn-primary">
+          <i class="fas fa-plus me-2"></i>Report First Issue
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endcomment %} {% endblock %}

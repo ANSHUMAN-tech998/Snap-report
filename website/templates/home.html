@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+
+{% if not user.is_authenticated %}
+<div class="row justify-content-center">
+  <div class="col-lg-6 col-md-8">
+    <div class="card">
+      <div class="card-header text-center">
+        <h3><i class="fas fa-sign-in-alt me-2"></i>Welcome</h3>
+        <p class="mb-0">Sign in to access your dashboard</p>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{% url 'home' %}">
+          {% csrf_token %}
+
+          <div class="mb-4">
+            <label for="username" class="form-label">
+              <i class="fas fa-user me-1"></i>Username
+            </label>
+            <input
+              type="text"
+              class="form-control"
+              name="username"
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+
+          <div class="mb-4">
+            <label for="password" class="form-label">
+              <i class="fas fa-lock me-1"></i>Password
+            </label>
+            <input
+              type="password"
+              class="form-control"
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+
+          {% comment %} <div class="mb-4">
+            <label for="role" class="form-label">
+              <i class="fas fa-user-shield me-1"></i>Login As *
+            </label>
+            <select class="form-select" id="role" name="role" required>
+              <option value="">Select Role</option>
+              <option value="user">🙋 User</option>
+              <option value="admin">🛡️ Admin</option>
+            </select>
+          </div> {% endcomment %}
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="card-footer text-center">
+        <p class="mb-0">
+          Don't have an account?
+          <a href="{% url 'register' %}" class="text-decoration-none">
+            <i class="fas fa-user-plus me-1"></i>Create one here
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% elif user.is_staff %}
+  {# Admin Dashboard content #}
+  <script>
+    // Redirect admin users immediately to admin dashboard
+    window.location.href = "{% url 'admin_dashboard' %}";
+  </script>
+
+  
+  
+{% else %}
+  {# Normal user/customer dashboard content #}
+
+  <!-- Page Title -->
+  <div class="row">
+    <div class="col-12">
+      <h1 class="page-title mb-4">
+        <i class="fas fa-clipboard-list me-3"></i>Customer Records
+      </h1>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg, #6366f1, #4f46e5)">
+        <div class="stat-number">{{ records|length }}</div>
+        <div class="stat-label">Total Records</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669)">
+        <div class="stat-number">{{ records|length }}</div>
+        <div class="stat-label">Active</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706)">
+        <div class="stat-number">{{ records.count|length }}</div>
+        <div class="stat-label">This Month</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg, #06b6d4, #0891b2)">
+        <div class="stat-number">{{ user.username|title }}</div>
+        <div class="stat-label">Logged In</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Records Table -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between">
+          <h5><i class="fas fa-table me-2"></i>Customer Records</h5>
+          <a href="{% url 'report_issue' %}" class="btn btn-success btn-sm">
+            <i class="fas fa-plus me-1"></i>Add New Record
+          </a>
+        </div>
+        <div class="card-body">
+          {% if records %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th><i class="fas fa-user me-1"></i>Name</th>
+                  <th><i class="fas fa-envelope me-1"></i>Email</th>
+                  <th><i class="fas fa-phone me-1"></i>Phone</th>
+                  <th><i class="fas fa-map-marker-alt me-1"></i>Location</th>
+                  <th><i class="fas fa-calendar me-1"></i>Created</th>
+                  <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in records %}
+                <tr>
+                  <td><strong>{{ record.first_name }} {{ record.last_name }}</strong></td>
+                  <td>{{ record.email }}</td>
+                  <td>{{ record.phone }}</td>
+                  <td>{{ record.city }}, {{ record.state }} {{ record.zipcode }}</td>
+                  <td>{{ record.created_at|date:"M d, Y" }}</td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <a href="{% url 'manage_issue' record.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye me-1"></i>View
+                      </a>
+                      <a href="#" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-database fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No Records Found</h5>
+            <p class="text-muted mb-4">Start by adding your first customer record to the system.</p>
+            <a href="{% url 'report_issue' %}" class="btn btn-primary">
+              <i class="fas fa-plus me-2"></i>Add First Record
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-danger">
+              <i class="fas fa-sign-out-alt me-2"></i>Logout
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endif %}
+{% endblock %}

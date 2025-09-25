@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="page-title mb-4">
+            <i class="fas fa-exclamation-triangle me-3"></i>Report New Issue
+        </h1>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-plus-circle me-2"></i>Issue Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="title" class="form-label">
+                                <i class="fas fa-heading me-1"></i>Issue Title *
+                            </label>
+                            <input type="text" class="form-control" id="title" name="title" required
+                                   placeholder="Brief description of the issue">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">
+                                <i class="fas fa-folder me-1"></i>Category *
+                            </label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="infrastructure">🏗️ Infrastructure</option>
+                                <option value="sanitation">🧽 Sanitation</option>
+                                <option value="utilities">⚡ Utilities</option>
+                                <option value="transport">🚗 Transport</option>
+                                <option value="health_safety">🏥 Health &amp; Safety</option>
+                                <option value="environment">🌱 Environment</option>
+                                <option value="other">📋 Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label">
+                            <i class="fas fa-align-left me-1"></i>Description *
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required
+                                  placeholder="Provide detailed description of the issue..."></textarea>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <label for="location" class="form-label">
+                                <i class="fas fa-map-marker-alt me-1"></i>Location *
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="location" name="location" required
+                                       placeholder="Location will be auto-filled using GPS">
+                                <button type="button" class="btn btn-outline-primary" id="getLocationBtn">
+                                    <i class="fas fa-location-arrow me-1"></i>Use My Location
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Click "Use My Location" to automatically detect your current location
+                            </small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="fas fa-satellite-dish me-1"></i>GPS Coordinates
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="latitude" name="latitude" readonly
+                                       placeholder="Lat: --.----">
+                                <input type="text" class="form-control" id="longitude" name="longitude" readonly
+                                       placeholder="Lng: --.----">
+                            </div>
+                            <small class="form-text text-muted">
+                                Auto-filled by GPS
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="reporter_name" class="form-label">
+                            <i class="fas fa-user me-1"></i>Your Name *
+                        </label>
+                        <input type="text" class="form-control" id="reporter_name" name="reporter_name" required
+                               placeholder="Your full name">
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="reporter_email" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>Email *
+                            </label>
+                            <input type="email" class="form-control" id="reporter_email" name="reporter_email" required
+                                   placeholder="your.email@example.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="reporter_phone" class="form-label">
+                                <i class="fas fa-phone me-1"></i>Phone
+                            </label>
+                            <input type="tel" class="form-control" id="reporter_phone" name="reporter_phone"
+                                   placeholder="Contact number (optional)">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="image" class="form-label">
+                                <i class="fas fa-camera me-1"></i>Photo (optional)
+                            </label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Upload a photo of the issue if available
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="video" class="form-label">
+                                <i class="fas fa-video me-1"></i>Video (optional)
+                            </label>
+                            <input type="file" class="form-control" id="video" name="video" accept="video/*">
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Upload a video if it helps explain the issue
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'home' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Issue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>Important Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-check-circle text-success me-2"></i>What to Include:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Provide as much detail as possible</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Include specific location details</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Add photos/videos when available</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Be specific about the problem</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-shield-alt text-info me-2"></i>Privacy & Security:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-lock text-info me-2"></i>All reports are kept confidential</li>
+                            <li><i class="fas fa-user-secret text-info me-2"></i>Used only for resolution purposes</li>
+                            <li><i class="fas fa-bell text-info me-2"></i>You'll receive updates via email</li>
+                            <li><i class="fas fa-clock text-info me-2"></i>Reports are processed within 24-48 hours</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Geolocation Script -->
+<!-- Using Nominatim (OpenStreetMap) for reverse geocoding -->
+ 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const locationInput = document.getElementById('location');
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+
+    // Check if geolocation is supported
+    if (!navigator.geolocation) {
+        getLocationBtn.style.display = 'none';
+        locationInput.placeholder = 'Enter location manually (GPS not supported)';
+        return;
+    }
+
+    getLocationBtn.addEventListener('click', function() {
+        // Show loading state
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Getting Location...';
+        this.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                // Update coordinate fields
+                latitudeInput.value = lat.toFixed(6);
+                longitudeInput.value = lng.toFixed(6);
+
+                // Get address using reverse geocoding
+                getAddressFromCoordinates(lat, lng)
+                    .then(function(address) {
+                        if (address) {
+                            locationInput.value = address;
+                        } else {
+                            locationInput.value = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+                        }
+                    })
+                    .catch(function(error) {
+                        console.log('Geocoding failed:', error);
+                        locationInput.value = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+                    });
+
+                // Reset button
+                getLocationBtn.innerHTML = originalText;
+                getLocationBtn.disabled = false;
+            },
+            function(error) {
+                console.log('Geolocation error:', error);
+
+                // Reset button
+                getLocationBtn.innerHTML = originalText;
+                getLocationBtn.disabled = false;
+
+                // Show error message
+                let errorMessage = '';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Location access denied. Please enter location manually or allow location access.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Location information unavailable. Please enter location manually.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'Location request timed out. Please try again.';
+                        break;
+                    default:
+                        errorMessage = 'Unable to get location. Please enter location manually.';
+                        break;
+                }
+
+                // Show error message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-warning alert-dismissible fade show mt-2';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle me-2"></i>${errorMessage}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+
+                locationInput.parentNode.parentNode.appendChild(alertDiv);
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+            }
+        );
+    });
+});
+
+// Reverse geocoding function using Nominatim (OpenStreetMap)
+async function getAddressFromCoordinates(lat, lng) {
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+            {
+                headers: {
+                    'User-Agent': 'SnapAndReport/1.0'
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Geocoding request failed');
+        }
+
+        const data = await response.json();
+
+        if (data && data.display_name) {
+            // Format the address nicely
+            let address = data.display_name;
+
+            // Try to get a shorter version
+            if (data.address) {
+                const addr = data.address;
+                const parts = [];
+
+                if (addr.house_number) parts.push(addr.house_number);
+                if (addr.road) parts.push(addr.road);
+                if (addr.neighbourhood) parts.push(addr.neighbourhood);
+                if (addr.suburb) parts.push(addr.suburb);
+                if (addr.city) parts.push(addr.city);
+                if (addr.county) parts.push(addr.county);
+                if (addr.state) parts.push(addr.state);
+
+                if (parts.length > 0) {
+                    address = parts.join(', ');
+                }
+            }
+
+            return address;
+        }
+
+        return null;
+    } catch (error) {
+        console.log('Geocoding error:', error);
+        return null;
+    }
+}
+</script>
+{% endblock %}

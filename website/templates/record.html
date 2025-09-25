@@ -1,0 +1,36 @@
+{% extends 'base.html'%} {% block content %}
+
+<h1>Compliant Details:</h1>
+
+
+
+<div class="card mb-3" style="max-width: 540px;">
+  <div class="row g-0">
+    <div class="col-md-4">
+      <img src="..." class="img-fluid rounded-start" alt="...">
+    </div>
+    <div class="col-md-8">
+      <div class="card-body">
+         <p class="card-text">Name : {{ record.first_name}}  {{ record.last_name}}</p>
+        <p class="card-text">Contact : {{record.phone }}</p>
+        <p class="card-text">Email : {{record.email }}</p>
+        <p class="card-text">Compliant Id : {{record.id }}</p>
+        <p class="card-text">Address : {{record.address}}</p>
+        
+        
+
+        <p class="card-text"><small class="text-body-secondary">{{record.created_at }}</small></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+ 
+
+<a class="btn btn-secondary" href="{% url 'home' %}" role="button">Back to Dashboard</a>
+<a class="btn btn-danger" href="{% url 'delete_record' record.id %}" role="button">Delete</a>  
+<a class="btn btn-primary" href="{% url 'home' %}" role="button">Approved</a>
+<a class="btn btn-secondary" href="{% url 'update_record' record.id %}" role="button">Update</a>
+
+
+  {% endblock %}

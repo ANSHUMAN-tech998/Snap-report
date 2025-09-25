@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Analytics Dashboard</h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Total Issues</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ total_issues }}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Resolved This Month</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ resolved_this_month }}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Avg Resolution Time</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ average_resolution_time }} days</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Active Users</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ users_count }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-map-marker-alt me-2"></i>Location Distribution</h5>
+            </div>
+            <div class="card-body">
+    {% if location_data %}
+    <canvas id="locationChart" width="400" height="200"></canvas>
+    {% else %}
+    <div class="text-center py-4">
+        <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+        <h6 class="text-muted">No Location Data</h6>
+        <p class="text-muted">Location data will appear as you add records with state/city information.</p>
+    </div>
+    {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-address-book me-2"></i>Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="contactChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>Analytics Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-chart-line me-2"></i>Dynamic Analytics Coming Soon</h6>
+                    <p class="mb-0">
+                        The charts above currently show sample data. Once you start adding customer records through the
+                        "Report Issue" form, these charts will automatically display real analytics based on:
+                    </p>
+                    <ul class="mb-0 mt-2">
+                        <li><i class="fas fa-map-marker-alt me-2"></i>Geographic distribution (states/cities)</li>
+                        <li><i class="fas fa-address-book me-2"></i>Contact method preferences</li>
+                        <li><i class="fas fa-calendar-alt me-2"></i>Monthly record creation trends</li>
+                        <li><i class="fas fa-chart-pie me-2"></i>Statistical breakdowns and insights</li>
+                    </ul>
+                </div>
+                <div class="text-center">
+                    <a href="{% url 'report_issue' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Start Adding Records
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sample data - will be replaced with dynamic data once records are added
+    const sampleLocationData = {
+        'California': 15,
+        'New York': 12,
+        'Texas': 8,
+        'Florida': 6,
+        'Illinois': 4
+    };
+
+    // Location Distribution Chart
+    const locationCtx = document.getElementById('locationChart');
+    if (locationCtx) {
+        new Chart(locationCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(sampleLocationData),
+                datasets: [{
+                    data: Object.values(sampleLocationData),
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Records by Location (Sample Data)'
+                    }
+                }
+            }
+        });
+    }
+
+    // Contact Methods Chart
+    const contactCtx = document.getElementById('contactChart');
+    if (contactCtx) {
+        new Chart(contactCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Email', 'Phone', 'Both', 'Address'],
+                datasets: [{
+                    label: 'Contact Methods',
+                    data: [25, 20, 15, 18], // Sample data
+                    backgroundColor: [
+                        'rgba(0, 123, 255, 0.8)',
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(23, 162, 184, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgb(0, 123, 255)',
+                        'rgb(40, 167, 69)',
+                        'rgb(255, 193, 7)',
+                        'rgb(23, 162, 184)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Contact Information Availability (Sample)'
+                    }
+                }
+            }
+        });
+    }
+
+    // Monthly Trends Chart
+    const monthlyCtx = document.getElementById('monthlyChart');
+    if (monthlyCtx) {
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Records Added',
+                    data: [12, 19, 8, 15, 10, 13],
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Monthly Record Creation Trends (Sample)'
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

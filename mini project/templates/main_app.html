@@ -1,0 +1,582 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snap & Report - Report Local Issues</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-blue-600">Snap&Report</h1>
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="text-sm font-medium text-blue-600 hover:underline">Logout</a>
+                    <div class="flex items-center space-x-2 cursor-pointer" onclick="showProfile()">
+                        <img id="headerProfilePic" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234F46E5'/%3E%3Ctext x='16' y='21' text-anchor='middle' fill='white' font-size='14' font-weight='bold'%3E{{ user.username|slice:":2"|upper }}%3C/text%3E%3C/svg%3E" alt="Profile" class="w-8 h-8 rounded-full">
+                        <span id="headerUsername" class="text-sm font-medium text-gray-700">{{ user.username }}</span>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-sm font-medium text-blue-600 hover:underline">Login</a>
+                    <div class="flex items-center space-x-2 cursor-pointer" onclick="showProfile()">
+                        <img id="headerProfilePic" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234F46E5'/%3E%3Ctext x='16' y='21' text-anchor='middle' fill='white' font-size='14' font-weight='bold'%3EGU%3C/text%3E%3C/svg%3E" alt="Profile" class="w-8 h-8 rounded-full">
+                        <span id="headerUsername" class="text-sm font-medium text-gray-700">Guest User</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        <!-- Home Page -->
+        <div id="homePage" class="page">
+            <div class="p-4 space-y-4">
+                <!-- Community Complaints -->
+                {% if complaints %}
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Community Reports</h2>
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {% for complaint in complaints %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 fade-in">
+                        <div class="p-4 flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                                {{ complaint.user.username|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{ complaint.user.username }}</h3>
+                                <p class="text-xs text-gray-500">{{ complaint.created_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <p class="text-gray-800 mb-2">{{ complaint.title }}</p>
+                            <p class="text-sm text-gray-600 mb-3">{{ complaint.description }}</p>
+                            
+                            {% if complaint.image %}
+                            <div class="bg-gray-100 rounded-lg p-3 mb-3">
+                                <img src="{{ complaint.image.url }}" alt="Complaint image" class="w-full h-auto rounded">
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-gray-500">📍 {{ complaint.location }}</span>
+                                </div>
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full {% if complaint.status == 'reported' %}bg-blue-100 text-blue-800{% elif complaint.status == 'in_progress' %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ complaint.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                                <button onclick="toggleLike(this)" class="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                    </svg>
+                                    <span class="text-sm">Like</span>
+                                </button>
+                                <button class="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                    <span class="text-sm">Comment</span>
+                                </button>
+                                <button class="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                    </svg>
+                                    <span class="text-sm">Share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="mt-2 text-lg font-medium text-gray-900">No reports yet</h3>
+                        <p class="mt-1 text-sm text-gray-500">Be the first to report an issue in your community!</p>
+                        <div class="mt-6">
+                            <button onclick="showReport()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Report an Issue
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profilePage" class="page hidden">
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <img id="profilePic" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%234F46E5'/%3E%3Ctext x='40' y='50' text-anchor='middle' fill='white' font-size='28' font-weight='bold'%3E{{ user.username|slice:":2"|upper }}%3C/text%3E%3C/svg%3E" alt="Profile" class="w-20 h-20 rounded-full mx-auto mb-4 cursor-pointer" onclick="changeProfilePic()">
+                    <h2 id="profileUsername" class="text-xl font-bold text-gray-900 mb-2">{{ user.username }}</h2>
+                    <button onclick="editUsername()" class="text-blue-600 text-sm hover:underline">Edit Username</button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-gray-900">Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="notificationToggle" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button onclick="showHistory()" class="w-full bg-white rounded-lg p-4 shadow-sm border border-gray-200 text-left hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-gray-900">My Report History</span>
+                            <span class="text-gray-400">→</span>
+                        </div>
+                    </button>
+
+                    <a href="{% url 'home' %}" class="block w-full bg-blue-600 text-white rounded-lg p-4 font-medium hover:bg-blue-700 transition-colors text-center">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Page -->
+        <div id="historyPage" class="page hidden">
+            <div class="p-4">
+                <div class="flex items-center mb-6">
+                    <button onclick="showProfile()" class="text-blue-600 mr-3">← Back</button>
+                    <h2 class="text-lg font-bold text-gray-900">My Reports</h2>
+                </div>
+
+                <div class="space-y-4">
+                    {% for report in user_reports %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-900">{{ report.title }}</h3>
+                            <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">{{ report.data.status|default:"Reported" }}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">{{ report.generated_at|date:"M d, Y H:i" }} at {{ report.data.location|default:"Location not specified" }}</p>
+                        <p class="text-sm text-gray-800">{{ report.data.description|default:"No description" }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-gray-500 py-8">
+                        <p>No reports found. Start by submitting your first report!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Page -->
+        <div id="reportPage" class="page hidden">
+            <div class="p-4">
+                <h2 class="text-lg font-bold text-gray-900 mb-6">Report an Issue</h2>
+
+                <form onsubmit="submitReport(event)" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Issue Title</label>
+                        <input type="text" id="issueTitle" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Brief description of the issue" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select id="issueCategory" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <option value="">Select category</option>
+                            <option value="roads">Roads & Traffic</option>
+                            <option value="lighting">Street Lighting</option>
+                            <option value="waste">Waste Management</option>
+                            <option value="parks">Parks & Recreation</option>
+                            <option value="utilities">Utilities</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="issueDescription" required rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Provide detailed description of the issue"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <div class="space-y-2">
+                            <input type="text" id="locationAddress" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter address or location" required>
+                            <button type="button" onclick="getCurrentLocation()" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2">
+                                <span>📍</span>
+                                <span>Use Current Location</span>
+                            </button>
+                            <div id="locationStatus" class="text-sm text-gray-600 hidden"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Photo (Optional)</label>
+                        <input type="file" id="issuePhoto" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                        Submit Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <div class="flex justify-around">
+                <button id="homeBtn" class="flex flex-col items-center py-2 px-4 text-blue-600">
+                    <span class="text-xl mb-1">🏠</span>
+                    <span class="text-xs font-medium">Home</span>
+                </button>
+                <button id="reportBtn" onclick="showReport()" class="flex flex-col items-center py-2 px-4 text-gray-600">
+                    <span class="text-xl mb-1">📝</span>
+                    <span class="text-xs font-medium">Report</span>
+                </button>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" id="profileNav" class="flex flex-col items-center py-2 px-4 text-gray-600">
+                        <span class="text-xl mb-1">👤</span>
+                        <span class="text-xs font-medium">Profile</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" id="loginNav" class="flex flex-col items-center py-2 px-4 text-gray-600">
+                        <span class="text-xl mb-1">🔐</span>
+                        <span class="text-xs font-medium">Login</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        // Debug: Check if script is loaded
+        console.log('Main script loaded');
+        
+        // Define showReport in the global scope immediately
+        function showReport() {
+            console.log('showReport function called');
+            hideAllPages();
+            const reportPage = document.getElementById('reportPage');
+            if (reportPage) {
+                reportPage.classList.remove('hidden');
+            }
+            updateNavButtons('report');
+            
+            // Reset form
+            const reportForm = document.querySelector('form[onsubmit="submitReport(event)"]');
+            if (reportForm) {
+                reportForm.reset();
+            }
+            
+            // Clear any existing image preview
+            const preview = document.getElementById('imagePreview');
+            if (preview) {
+                preview.innerHTML = '';
+                preview.classList.add('hidden');
+            }
+        }
+        
+        // Make it available on window object
+        window.showReport = showReport;
+
+        function showHome() {
+            hideAllPages();
+            const homePage = document.getElementById('homePage');
+            if (homePage) {
+                homePage.classList.remove('hidden');
+            }
+            updateNavButtons('home');
+        }
+        
+        function hideAllPages() {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.classList.add('hidden');
+            });
+        }
+        
+        function updateNavButtons(activePage) {
+            // Reset all buttons
+            document.querySelectorAll('nav button, nav a').forEach(btn => {
+                btn.classList.remove('text-blue-600');
+                btn.classList.add('text-gray-600');
+            });
+            
+            // Set active button
+            if (activePage === 'home' && document.getElementById('homeBtn')) {
+                document.getElementById('homeBtn').classList.remove('text-gray-600');
+                document.getElementById('homeBtn').classList.add('text-blue-600');
+            } else if (activePage === 'report' && document.getElementById('reportBtn')) {
+                document.getElementById('reportBtn').classList.remove('text-gray-600');
+                document.getElementById('reportBtn').classList.add('text-blue-600');
+            }
+        }
+
+        // User data with Django integration
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = {
+                username: '{{ user.username|escapejs|default:"Guest User" }}',
+                isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
+                reports: [
+                    {% for report in user_reports %}
+                    {
+                        id: {{ report.id|default:'0' }},
+                        title: '{{ report.title|escapejs|default:"" }}',
+                        category: '{{ report.data.category|default:"general"|escapejs }}',
+                        description: '{{ report.data.description|default:""|escapejs }}',
+                        location: '{{ report.data.location|default:"Not specified"|escapejs }}',
+                        date: '{{ report.generated_at|timesince|escapejs }}',
+                        status: '{{ report.data.status|default:"Reported"|escapejs }}'
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            };
+
+            // Navigation functions
+            function showHome() {
+                hideAllPages();
+                const homePage = document.getElementById('homePage');
+                if (homePage) {
+                    homePage.classList.remove('hidden');
+                }
+                updateNavButtons('home');
+            }
+
+            function showProfile() {
+                hideAllPages();
+                const profilePage = document.getElementById('profilePage');
+                if (profilePage) {
+                    profilePage.classList.remove('hidden');
+                }
+                updateNavButtons('profile');
+            }
+
+            function showHistory() {
+                hideAllPages();
+                const historyPage = document.getElementById('historyPage');
+                if (historyPage) {
+                    historyPage.classList.remove('hidden');
+                }
+                updateNavButtons('history');
+                renderHistory();
+            }
+
+            function renderHistory() {
+                const historyContainer = document.querySelector('#historyPage .space-y-4');
+                historyContainer.innerHTML = '';
+
+                if (userData.reports.length > 0) {
+                    userData.reports.forEach(report => {
+                        const statusClass = report.status === 'Resolved' ? 'bg-green-100 text-green-800' :
+                                          report.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                                          'bg-gray-100 text-gray-800';
+                        
+                        const buttonClass = report.status === 'Resolved' ? 'text-green-600' : 'text-gray-600';
+                        
+                        historyContainer.innerHTML += `
+                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 ${statusClass.split(' ')[0]}">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-semibold text-lg">${report.title}</h3>
+                                    <span class="px-2 py-1 rounded text-xs font-medium ${statusClass}">${report.status}</span>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-2">Category: ${report.category}</p>
+                                <p class="text-gray-700 mb-2">${report.description}</p>
+                                <p class="text-gray-500 text-sm mb-2">📍 ${report.location}</p>
+                                <p class="text-gray-500 text-xs">⏰ ${report.date}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    historyContainer.innerHTML = '<p class="text-gray-500 text-center">No reports found.</p>';
+                }
+            }
+
+        // Profile functions
+        function editUsername() {
+            const newUsername = prompt('Enter new username:', userData.username);
+            if (newUsername && newUsername.trim()) {
+                userData.username = newUsername.trim();
+                updateUserDisplay();
+            }
+        }
+
+        function changeProfilePic() {
+            const colors = ['#4F46E5', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            const initials = userData.username.split(' ').map(n => n[0]).join('').toUpperCase();
+
+            userData.profilePic = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='${randomColor}'/%3E%3Ctext x='40' y='50' text-anchor='middle' fill='white' font-size='28' font-weight='bold'%3E${initials}%3C/text%3E%3C/svg%3E`;
+            updateUserDisplay();
+        }
+
+        function updateUserDisplay() {
+            document.getElementById('headerUsername').textContent = userData.username;
+            document.getElementById('profileUsername').textContent = userData.username;
+            document.getElementById('profilePic').src = userData.profilePic;
+
+            // Update header profile pic
+            const initials = userData.username.split(' ').map(n => n[0]).join('').toUpperCase();
+            const headerPic = userData.profilePic.replace('80', '32').replace('28', '14').replace('50', '21');
+            document.getElementById('headerProfilePic').src = headerPic;
+        }
+
+        // Thumbs up functionality
+        function toggleLike(button) {
+            const likeIcon = button.querySelector('.like-icon');
+            const likeCount = button.querySelector('.like-count');
+            const currentCount = parseInt(likeCount.textContent);
+
+            if (likeIcon.textContent === '👍') {
+                likeIcon.textContent = '👎';
+                likeCount.textContent = currentCount - 1;
+                button.classList.remove('text-blue-500');
+                button.classList.add('text-gray-600');
+            } else {
+                likeIcon.textContent = '👍';
+                likeCount.textContent = currentCount + 1;
+                button.classList.add('text-blue-500');
+                button.classList.remove('text-gray-600');
+            }
+        }
+
+
+        // Location functionality
+        function getCurrentLocation() {
+            const statusDiv = document.getElementById('locationStatus');
+            statusDiv.classList.remove('hidden');
+            statusDiv.textContent = 'Getting your location...';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude.toFixed(6);
+                        const lng = position.coords.longitude.toFixed(6);
+                        document.getElementById('locationAddress').value = `Current Location (${lat}, ${lng})`;
+                        statusDiv.textContent = '✅ Location captured successfully!';
+                        statusDiv.className = 'text-sm text-green-600';
+                    },
+                    function(error) {
+                        statusDiv.textContent = '❌ Unable to get location. Please enter manually.';
+                        statusDiv.className = 'text-sm text-red-600';
+                    }
+                );
+            } else {
+                statusDiv.textContent = '❌ Geolocation not supported. Please enter manually.';
+                statusDiv.className = 'text-sm text-red-600';
+            }
+        }
+
+        // Report submission with Django integration
+        async function submitReport(event) {
+            event.preventDefault();
+
+            const title = document.getElementById('issueTitle').value;
+            const category = document.getElementById('issueCategory').value;
+            const description = document.getElementById('issueDescription').value;
+            const location = document.getElementById('locationAddress').value || 'Location not specified';
+            const photoFile = document.getElementById('issuePhoto').files[0];
+
+            if (!title || !description) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('description', description);
+            formData.append('location', location);
+            if (photoFile) {
+                formData.append('photo', photoFile);
+            }
+
+            try {
+                // Submit to Django backend
+                const response = await fetch('/app/submit-report/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Report submitted successfully! Thank you for helping improve our community.');
+                    // Reset form
+                    document.getElementById('issueTitle').value = '';
+                    document.getElementById('issueCategory').value = '';
+                    document.getElementById('issueDescription').value = '';
+                    document.getElementById('locationAddress').value = '';
+                    document.getElementById('issuePhoto').value = '';
+                    document.getElementById('locationStatus').classList.add('hidden');
+                    // Go back to home
+                    showHome();
+                } else {
+                    alert('Error submitting report: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error submitting report. Please try again.');
+            }
+        }
+
+            // Add event listeners
+            const homeBtn = document.getElementById('homeBtn');
+            const reportBtn = document.getElementById('reportBtn');
+            
+            if (homeBtn) {
+                homeBtn.addEventListener('click', showHome);
+            }
+            
+            if (reportBtn) {
+                console.log('Adding click event to report button');
+                reportBtn.addEventListener('click', showReport);
+            } else {
+                console.error('Report button not found!');
+            }
+
+            // Expose functions to global scope for inline HTML handlers
+            window.showHome = showHome;
+            window.showProfile = showProfile;
+            window.showHistory = showHistory;
+            window.editUsername = editUsername;
+            window.changeProfilePic = changeProfilePic;
+            window.updateUserDisplay = updateUserDisplay;
+            window.toggleLike = toggleLike;
+            window.getCurrentLocation = getCurrentLocation;
+            window.submitReport = submitReport;
+
+            // Initialize app
+            updateUserDisplay();
+            showHome();
+        });
+    </script>
+</body>
+</html>

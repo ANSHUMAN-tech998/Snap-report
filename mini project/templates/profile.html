@@ -1,0 +1,531 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Snap&Report{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>My Profile</h1>
+        <p>Manage your account and view your activity</p>
+        <div class="profile-actions">
+            <a href="{% url 'home' %}" class="btn">← Back to Dashboard</a>
+            <a href="{% url 'main_app' %}" class="btn">Open Snap&Report</a>
+            <a href="{% url 'logout' %}" class="btn secondary">Logout</a>
+        </div>
+    </div>
+
+    <div class="profile-content">
+        <!-- User Information -->
+        <div class="profile-section">
+            <h2>User Information</h2>
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <img id="profileAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%234F46E5'/%3E%3Ctext x='40' y='50' text-anchor='middle' fill='white' font-size='28' font-weight='bold'%3E{{ user.username|slice:":2"|upper }}%3C/text%3E%3C/svg%3E" alt="Profile Picture" class="avatar-img">
+                    <button onclick="changeAvatar()" class="avatar-change-btn">Change</button>
+                </div>
+                <div class="profile-info">
+                    <h3>{{ user.username }}</h3>
+                    <p>{{ user.email }}</p>
+                    <p class="member-since">Member since {{ user.date_joined|date:"M d, Y" }}</p>
+                    <button onclick="editProfile()" class="btn small">Edit Profile</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="profile-section">
+            <h2>Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Total Reports</h4>
+                    <div class="stat-value">{{ user_reports|length }}</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Activities</h4>
+                    <div class="stat-value">{{ user_activities|length }}</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Profile Views</h4>
+                    <div class="stat-value">{{ user_activities|length }}</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Account Status</h4>
+                    <div class="stat-value active">Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reports -->
+        <div class="profile-section">
+            <h2>My Reports</h2>
+            {% if user_reports %}
+                <div class="reports-list">
+                    {% for report in user_reports %}
+                    <div class="report-item">
+                        <div class="report-header">
+                            <h4>{{ report.title }}</h4>
+                            <span class="report-status {{ report.data.status|default:'Reported'|lower|slugify }}">{{ report.data.status|default:"Reported" }}</span>
+                        </div>
+                        <div class="report-meta">
+                            <small>{{ report.generated_at|date:"M d, Y H:i" }}</small>
+                            <small>{{ report.data.location|default:"Location not specified" }}</small>
+                        </div>
+                        <div class="report-description">
+                            {{ report.data.description|default:"No description" }}
+                        </div>
+                        {% if report.data.likes %}
+                        <div class="report-likes">
+                            👍 {{ report.data.likes }} likes
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-reports">
+                    <p>No reports submitted yet.</p>
+                    <a href="{% url 'main_app' %}" class="btn">Submit Your First Report</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="profile-section">
+            <h2>Recent Activities</h2>
+            {% if user_activities %}
+                <div class="activities-list">
+                    {% for activity in user_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            {% if activity.activity_type == 'login' %}
+                                🔐
+                            {% elif activity.activity_type == 'logout' %}
+                                🔓
+                            {% elif activity.activity_type == 'report_submitted' %}
+                                📝
+                            {% elif activity.activity_type == 'profile_updated' %}
+                                👤
+                            {% else %}
+                                📱
+                            {% endif %}
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-description">{{ activity.description }}</div>
+                            <div class="activity-time">{{ activity.timestamp|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-activities">
+                    <p>No activities recorded yet.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Account Settings -->
+        <div class="profile-section">
+            <h2>Account Settings</h2>
+            <div class="settings-list">
+                <button onclick="toggleNotifications()" class="setting-item">
+                    <span class="setting-icon">🔔</span>
+                    <span class="setting-text">Notifications</span>
+                    <span class="setting-toggle">ON</span>
+                </button>
+                <button onclick="changePassword()" class="setting-item">
+                    <span class="setting-icon">🔒</span>
+                    <span class="setting-text">Change Password</span>
+                    <span class="setting-arrow">→</span>
+                </button>
+                <button onclick="exportData()" class="setting-item">
+                    <span class="setting-icon">📥</span>
+                    <span class="setting-text">Export Data</span>
+                    <span class="setting-arrow">→</span>
+                </button>
+                <button onclick="deleteAccount()" class="setting-item danger">
+                    <span class="setting-icon">🗑️</span>
+                    <span class="setting-text">Delete Account</span>
+                    <span class="setting-arrow">→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile-header {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.profile-header h1 {
+    color: #1f2937;
+    margin-bottom: 10px;
+}
+
+.profile-header p {
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.profile-content {
+    display: grid;
+    gap: 30px;
+}
+
+.profile-section {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.profile-section h2 {
+    color: #1f2937;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 10px;
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.profile-avatar {
+    position: relative;
+}
+
+.avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid #e5e7eb;
+}
+
+.avatar-change-btn {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-info h3 {
+    margin: 0 0 5px 0;
+    color: #1f2937;
+}
+
+.profile-info p {
+    margin: 0 0 5px 0;
+    color: #6b7280;
+}
+
+.member-since {
+    font-size: 14px;
+    color: #9ca3af !important;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: #f3f4f6;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-card h4 {
+    margin: 0 0 10px 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #3b82f6;
+}
+
+.stat-value.active {
+    color: #10b981;
+}
+
+.reports-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.report-item {
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.report-header h4 {
+    margin: 0;
+    color: #1f2937;
+}
+
+.report-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.report-status.reported {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+.report-status.in-progress {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.report-status.resolved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.report-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.report-description {
+    color: #4b5563;
+    margin-bottom: 10px;
+}
+
+.report-likes {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.activities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+}
+
+.activity-icon {
+    font-size: 20px;
+}
+
+.activity-description {
+    flex: 1;
+    color: #1f2937;
+}
+
+.activity-time {
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.setting-item:hover {
+    background: #f3f4f6;
+}
+
+.setting-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.setting-text {
+    flex: 1;
+    color: #1f2937;
+}
+
+.setting-toggle, .setting-arrow {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.setting-item.danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.setting-item.danger:hover {
+    background: #fee2e2;
+}
+
+.setting-item.danger .setting-text {
+    color: #dc2626;
+}
+
+.no-reports, .no-activities {
+    text-align: center;
+    color: #6b7280;
+    padding: 40px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 2px dashed #e5e7eb;
+}
+
+.no-reports p, .no-activities p {
+    margin-bottom: 15px;
+}
+
+.btn.small {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 15px;
+    }
+
+    .profile-header, .profile-section {
+        padding: 20px;
+    }
+
+    .profile-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-actions .btn {
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats-grid .stat-card:last-child {
+        grid-column: span 2;
+    }
+}
+</style>
+
+<script>
+function changeAvatar() {
+    const colors = ['#4F46E5', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const initials = '{{ user.username }}'.split(' ').map(n => n[0]).join('').toUpperCase();
+
+    const avatar = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='${randomColor}'/%3E%3Ctext x='40' y='50' text-anchor='middle' fill='white' font-size='28' font-weight='bold'%3E${initials}%3C/text%3E%3C/svg%3E`;
+    document.getElementById('profileAvatar').src = avatar;
+
+    alert('Avatar changed! (This is just a preview)');
+}
+
+function editProfile() {
+    const newUsername = prompt('Enter new username:', '{{ user.username }}');
+    if (newUsername && newUsername.trim() && newUsername.trim() !== '{{ user.username }}') {
+        alert('Profile update feature coming soon!');
+    }
+}
+
+function toggleNotifications() {
+    const toggle = document.querySelector('.setting-toggle');
+    if (toggle.textContent === 'ON') {
+        toggle.textContent = 'OFF';
+        toggle.style.color = '#dc2626';
+    } else {
+        toggle.textContent = 'ON';
+        toggle.style.color = '#6b7280';
+    }
+}
+
+function changePassword() {
+    alert('Password change feature coming soon!');
+}
+
+function exportData() {
+    alert('Data export feature coming soon!');
+}
+
+function deleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        alert('Account deletion feature coming soon!');
+    }
+}
+</script>
+{% endblock %}

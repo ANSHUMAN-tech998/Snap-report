@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Snap&Report{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Center the auth container */
+    .auth-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 2rem 1rem;
+    }
+    
+    .auth-container {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 2.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-header h2 {
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-header p {
+        color: #6b7280;
+        margin: 0;
+    }
+    
+    .form-container {
+        width: 100%;
+    }
+    
+    .input-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .input-group input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+    
+    .input-group input:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    
+    .error {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .btn:hover {
+        background-color: #4338ca;
+    }
+    
+    .switch-form {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .switch-form a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .switch-form a:hover {
+        text-decoration: underline;
+    }
+    
+    .back-home {
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .back-home:hover {
+        text-decoration: underline;
+    }
+    
+    @media (max-width: 480px) {
+        .auth-container {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+    <a href="{% url 'home' %}" class="back-home">← Back to Home</a>
+    
+    <div class="auth-header">
+        <h2>Welcome Back</h2>
+        <p>Sign in to your account</p>
+    </div>
+    
+    <div class="form-container">
+        <form action="{% url 'login' %}" method="POST" id="loginFormElement">
+            {% csrf_token %}
+
+            <div class="input-group">
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                {% if form.username.errors %}
+                    <div class="error">{{ form.username.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                {% if form.password.errors %}
+                    <div class="error">{{ form.password.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="options">
+                <label class="remember-me">
+                    <input type="checkbox" name="remember_me"> Remember me
+                </label>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn">Sign In</button>
+
+            <div class="switch-form">
+                Don't have an account? <a href="{% url 'register' %}">Sign up</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

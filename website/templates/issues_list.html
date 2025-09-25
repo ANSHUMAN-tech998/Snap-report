@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="page-title mb-4">
+            <i class="fas fa-tasks me-3"></i>Issues Management
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-filter me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">All Categories</option>
+                            <option value="infrastructure" {% if filter_category == 'infrastructure' %}selected{% endif %}>Infrastructure</option>
+                            <option value="sanitation" {% if filter_category == 'sanitation' %}selected{% endif %}>Sanitation</option>
+                            <option value="utilities" {% if filter_category == 'utilities' %}selected{% endif %}>Utilities</option>
+                            <option value="transport" {% if filter_category == 'transport' %}selected{% endif %}>Transport</option>
+                            <option value="health_safety" {% if filter_category == 'health_safety' %}selected{% endif %}>Health &amp; Safety</option>
+                            <option value="environment" {% if filter_category == 'environment' %}selected{% endif %}>Environment</option>
+                            <option value="other" {% if filter_category == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">All Statuses</option>
+                            <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="in_progress" {% if filter_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="resolved" {% if filter_status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if filter_status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="priority" class="form-label">Priority</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="">All Priorities</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div>
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Filter
+                            </button>
+                            <a href="{% url 'issues_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                            
+                            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back 
+                            </a>
+
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h5><i class="fas fa-clipboard-list me-2"></i>Issues List</h5>
+                <a href="{% url 'report_issue' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-1"></i>Report New Issue
+                </a>
+            </div>
+            <div class="card-body">
+                {% if issues %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag me-1"></i>ID</th>
+                                <th><i class="fas fa-heading me-1"></i>Title</th>
+                                <th><i class="fas fa-folder me-1"></i>Category</th>
+                                <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                                <th><i class="fas fa-exclamation-triangle me-1"></i>Priority</th>
+                                <th><i class="fas fa-user me-1"></i>Reporter</th>
+                                <th><i class="fas fa-calendar me-1"></i>Created</th>
+                                <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in issues %}
+                            <tr>
+                                <td><span class="badge bg-secondary">#{{ issue.id }}</span></td>
+                                <td>
+                                    <strong>{{ issue.first_name }} {{ issue.last_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ issue.email }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-tag me-1"></i>Customer Record
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Active
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Medium
+                                    </span>
+                                </td>
+                                <td>{{ issue.first_name }} {{ issue.last_name }}</td>
+                                <td>{{ issue.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'manage_issue' issue.id %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-edit me-1"></i>Manage
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+               
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Issues Found</h5>
+                    <p class="text-muted mb-4">
+                        No issues match your current filter criteria.
+                    </p>
+                    <a href="{% url 'report_issue' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Report First Issue
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
