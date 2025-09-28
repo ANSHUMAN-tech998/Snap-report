@@ -334,4 +334,4 @@ For support and questions:
 
 **⭐ If you found this helpful, please give it a star!**
 
-[Back to Top](#-snap-and-report---issue-management-system)
+[Back to Top](#-snap-and-report---issue-management-system). 
